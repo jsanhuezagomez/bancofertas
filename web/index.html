@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BancOfertas</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>BancOfertas</h1>
+        <p id="summary">Cargando beneficios...</p>
+      </div>
+      <button id="refreshButton" type="button" title="Recargar datos">Recargar</button>
+    </header>
+
+    <main>
+      <section class="filters" aria-label="Filtros">
+        <label>
+          Buscar
+          <input id="searchInput" type="search" placeholder="Local, banco, comuna..." />
+        </label>
+        <label>
+          Banco
+          <select id="bankFilter">
+            <option value="">Todos</option>
+          </select>
+        </label>
+        <label>
+          Dia
+          <select id="dayFilter">
+            <option value="">Todos</option>
+            <option value="lunes">Lunes</option>
+            <option value="martes">Martes</option>
+            <option value="miercoles">Miercoles</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="sabado">Sabado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </label>
+        <label>
+          Descuento minimo
+          <select id="discountFilter">
+            <option value="0">Todos</option>
+            <option value="10">10%+</option>
+            <option value="20">20%+</option>
+            <option value="30">30%+</option>
+            <option value="40">40%+</option>
+            <option value="50">50%+</option>
+          </select>
+        </label>
+        <label>
+          Region
+          <select id="regionFilter">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <label>
+          Comuna
+          <select id="comunaFilter">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <label class="check">
+          <input id="todayFilter" type="checkbox" />
+          Hoy
+        </label>
+        <label class="check">
+          <input id="validFilter" type="checkbox" checked />
+          Vigentes
+        </label>
+      </section>
+
+      <section class="tableShell" aria-live="polite">
+        <table>
+          <thead>
+            <tr>
+              <th><button class="sortButton" type="button" data-sort="merchant">Local</button></th>
+              <th><button class="sortButton" type="button" data-sort="bank">Banco</button></th>
+              <th><button class="sortButton" type="button" data-sort="discount">Dto.</button></th>
+              <th><button class="sortButton" type="button" data-sort="days">Dias</button></th>
+              <th><button class="sortButton" type="button" data-sort="channel">Canal</button></th>
+              <th><button class="sortButton" type="button" data-sort="region">Region</button></th>
+              <th><button class="sortButton" type="button" data-sort="comuna">Comuna</button></th>
+              <th><button class="sortButton" type="button" data-sort="validUntil">Vigencia</button></th>
+            </tr>
+          </thead>
+          <tbody id="offersBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty" hidden>No hay beneficios para esos filtros.</div>
+      </section>
+    </main>
+
+    <dialog id="offerDialog">
+      <div class="dialogHeader">
+        <div>
+          <h2 id="dialogTitle"></h2>
+          <p id="dialogSubtitle"></p>
+        </div>
+        <button id="closeDialog" type="button" title="Cerrar">Cerrar</button>
+      </div>
+      <div id="dialogBody" class="dialogBody"></div>
+    </dialog>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

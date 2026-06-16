@@ -1,0 +1,50 @@
+name: Deploy Ofertas
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ofertas
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Trust VPS host key
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.VPS_PORT }}" "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy static files
+        run: |
+          set -euo pipefail
+          ssh -p "${{ secrets.VPS_PORT }}" "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "mkdir -p /srv/cyberianode/ofertas-app/data"
+
+          rsync -az --delete \
+            --exclude .git/ \
+            --exclude .github/ \
+            --exclude .venv/ \
+            --exclude __pycache__/ \
+            --exclude .pytest_cache/ \
+            --exclude data/ \
+            -e "ssh -p ${{ secrets.VPS_PORT }}" \
+            ./ \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/cyberianode/ofertas-app/"
