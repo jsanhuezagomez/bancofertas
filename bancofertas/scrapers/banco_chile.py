@@ -268,7 +268,7 @@ def parse_detail_page(page: Page, url: str) -> Benefit:
 
 def scrape_banco_chile_benefits(
     category_url: str = DEFAULT_CATEGORY_URL,
-    headless: bool = True,
+    headless: bool = False,
     limit: int | None = None,
 ) -> list[Benefit]:
     with sync_playwright() as playwright:
@@ -285,7 +285,7 @@ def scrape_banco_chile_benefits(
             if not detail_urls:
                 raise RuntimeError(
                     "No detail URLs were found. The Banco de Chile widget may have been blocked; "
-                    "try again with --headed."
+                    "retry without --headless."
                 )
             finish_progress()
 
@@ -308,7 +308,7 @@ def scrape_banco_chile_benefits(
             browser.close()
 
 
-def scrape_banco_chile_cafeterias(category_url: str = DEFAULT_CATEGORY_URL, headless: bool = True) -> list[Benefit]:
+def scrape_banco_chile_cafeterias(category_url: str = DEFAULT_CATEGORY_URL, headless: bool = False) -> list[Benefit]:
     return scrape_banco_chile_benefits(category_url=category_url, headless=headless)
 
 
@@ -325,10 +325,20 @@ def main() -> None:
     parser.add_argument("--category-url", default=DEFAULT_CATEGORY_URL)
     parser.add_argument("--output", default="data/banco_chile_sabores.json")
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of detail pages to scrape.")
-    parser.add_argument("--headed", action="store_true", help="Run Chromium with a visible window.")
+    browser_mode = parser.add_mutually_exclusive_group()
+    browser_mode.add_argument(
+        "--headless",
+        action="store_true",
+        help="Run Chromium without a visible window. Banco de Chile may block this mode.",
+    )
+    browser_mode.add_argument(
+        "--headed",
+        action="store_true",
+        help="Deprecated compatibility alias; visible Chromium is already the default.",
+    )
     args = parser.parse_args()
 
-    benefits = scrape_banco_chile_benefits(args.category_url, headless=not args.headed, limit=args.limit)
+    benefits = scrape_banco_chile_benefits(args.category_url, headless=args.headless, limit=args.limit)
     write_json(benefits, Path(args.output))
     print(f"Wrote {len(benefits)} benefits to {args.output}")
 
