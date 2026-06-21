@@ -55,6 +55,23 @@ def finish_progress() -> None:
     print(file=sys.stderr, flush=True)
 
 
+def goto_detail_page(page: Page, url: str, attempts: int = 3) -> None:
+    last_error: PlaywrightTimeoutError | None = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+            page.wait_for_timeout(1_000)
+            return
+        except PlaywrightTimeoutError as error:
+            last_error = error
+            progress(f"Retrying detail page {attempt}/{attempts}: {url}")
+            page.wait_for_timeout(attempt * 2_000)
+
+    if last_error:
+        raise last_error
+
+
 def collect_current_detail_urls(page: Page, category_url: str) -> list[str]:
     hrefs = page.locator("a").evaluate_all(
         """links => links
@@ -219,8 +236,7 @@ def extract_card_image_text(page: Page) -> str | None:
 
 
 def parse_detail_page(page: Page, url: str) -> Benefit:
-    page.goto(url, wait_until="networkidle", timeout=60_000)
-    page.wait_for_load_state("domcontentloaded")
+    goto_detail_page(page, url)
 
     text = reveal_conditions(page, rendered_text(page))
     merchant = extract_merchant(page, url)
@@ -277,7 +293,15 @@ def scrape_banco_chile_benefits(
             total = len(detail_urls)
             for index, detail_url in enumerate(detail_urls, start=1):
                 progress(f"Parsing benefit {index}/{total}: {detail_url}")
-                benefits.append(parse_detail_page(page, detail_url))
+                try:
+                    benefits.append(parse_detail_page(page, detail_url))
+                except PlaywrightTimeoutError:
+                    finish_progress()
+                    print(
+                        f"Skipping benefit after navigation timeout: {detail_url}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
             finish_progress()
             return benefits
         finally:
