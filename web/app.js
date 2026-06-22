@@ -4,7 +4,6 @@ const DATASETS = [
   "/data/bci_restaurantes.json",
   "/data/banco_estado_sabores.json",
   "/data/santander_sabores.json",
-  "/data/itau_ruta_gourmet.json",
   "/data/scotiabank_ruta_gourmet.json"
 ];
 
