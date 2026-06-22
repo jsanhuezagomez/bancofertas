@@ -20,7 +20,7 @@ from bancofertas.parsing import (
     parse_discount,
     parse_promotion_day,
 )
-from bancofertas.scrapers.common import fetch_json, html_to_text, parse_chilean_date, write_json
+from bancofertas.scrapers.common import fetch_json, html_to_text, parse_chilean_date, progress_line, write_json
 
 
 BANK_NAME = "Santander"
@@ -176,7 +176,13 @@ def scrape_santander_benefits(
     ]
     if limit is not None:
         promotions = promotions[:limit]
-    return [parse_santander_promotion(promotion) for promotion in promotions]
+    total = len(promotions)
+    progress_line(f"Santander: found {total} benefits")
+    benefits: list[Benefit] = []
+    for index, promotion in enumerate(promotions, start=1):
+        progress_line(f"Santander: {promotion.get('title') or 'Comercio'}", index, total)
+        benefits.append(parse_santander_promotion(promotion))
+    return benefits
 
 
 def main() -> None:

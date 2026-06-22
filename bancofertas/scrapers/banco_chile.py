@@ -48,11 +48,11 @@ def rendered_text(page: Page) -> str:
 
 
 def progress(message: str) -> None:
-    print(f"\r{message}", end="", file=sys.stderr, flush=True)
+    print(message, file=sys.stderr, flush=True)
 
 
 def finish_progress() -> None:
-    print(file=sys.stderr, flush=True)
+    return None
 
 
 def goto_detail_page(page: Page, url: str, attempts: int = 3) -> None:

@@ -16,7 +16,7 @@ from bancofertas.parsing import (
     parse_promotion_day,
     parse_valid_until,
 )
-from bancofertas.scrapers.common import USER_AGENT, write_json
+from bancofertas.scrapers.common import USER_AGENT, progress_line, write_json
 
 
 BANK_NAME = "BancoEstado"
@@ -310,7 +310,9 @@ def enrich_from_detail(benefit: Benefit, detail_text: str) -> None:
 
 
 def open_benefit_details(page: Page, benefits: list[Benefit], listing_text: str) -> None:
-    for benefit in benefits:
+    total = len(benefits)
+    for index, benefit in enumerate(benefits, start=1):
+        progress_line(f"BancoEstado: {benefit.merchant}", index, total)
         listing_url = page.url
         fragment = benefit.source_url.split("#beneficio=", 1)[-1] if "#beneficio=" in benefit.source_url else ""
         card_id = fragment.split("&indice=", 1)[0]
@@ -360,6 +362,7 @@ def scrape_banco_estado_benefits(
                 raise RuntimeError("No BancoEstado food benefits were found in the rendered listing.")
             if limit is not None:
                 benefits = benefits[:limit]
+            progress_line(f"BancoEstado: found {len(benefits)} benefits")
             open_benefit_details(page, benefits, text)
             return benefits
         finally:

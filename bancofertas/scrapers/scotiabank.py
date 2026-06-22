@@ -7,7 +7,7 @@ from pathlib import Path
 
 from bancofertas.models import Benefit
 from bancofertas.parsing import parse_card_requirements, parse_channel, parse_discount, parse_promotion_day
-from bancofertas.scrapers.common import fetch_text, html_to_text, parse_chilean_date, write_json
+from bancofertas.scrapers.common import fetch_text, html_to_text, parse_chilean_date, progress_line, write_json
 
 
 BANK_NAME = "Scotiabank"
@@ -88,7 +88,13 @@ def scrape_scotiabank_benefits(category_url: str = DEFAULT_URL, limit: int | Non
         raise RuntimeError("No embedded Ruta Gourmet offers were found.")
     if limit is not None:
         sites = sites[:limit]
-    return [parse_scotiabank_site(site, category_url) for site in sites]
+    total = len(sites)
+    progress_line(f"Scotiabank: found {total} benefits")
+    benefits: list[Benefit] = []
+    for index, site in enumerate(sites, start=1):
+        progress_line(f"Scotiabank: {site.get('nombre') or 'Restaurante'}", index, total)
+        benefits.append(parse_scotiabank_site(site, category_url))
+    return benefits
 
 
 def main() -> None:

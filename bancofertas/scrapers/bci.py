@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 from bancofertas.models import Benefit
 from bancofertas.parsing import parse_card_requirements, parse_channel, parse_discount, parse_promotion_day
-from bancofertas.scrapers.common import fetch_json, iso_datetime_to_chile_date, write_json
+from bancofertas.scrapers.common import fetch_json, iso_datetime_to_chile_date, progress_line, write_json
 
 
 BANK_NAME = "BCI"
@@ -64,6 +64,7 @@ def scrape_bci_benefits(limit: int | None = None) -> list[Benefit]:
         payload = fetch_json(f"{BASE_API_URL}?{query}", headers=headers)
         offers.extend(payload.get("ofertas") or [])
         total_pages = int((payload.get("paginado") or {}).get("totalPaginas") or page)
+        progress_line(f"BCI: API page {page}/{total_pages}, {len(offers)} offers")
         if page >= total_pages or (limit is not None and len(offers) >= limit):
             break
         page += 1
@@ -71,7 +72,14 @@ def scrape_bci_benefits(limit: int | None = None) -> list[Benefit]:
     restaurant_offers = [offer for offer in offers if is_restaurant_offer(offer)]
     if limit is not None:
         restaurant_offers = restaurant_offers[:limit]
-    return [parse_bci_offer(offer) for offer in restaurant_offers]
+    total = len(restaurant_offers)
+    progress_line(f"BCI: found {total} restaurant benefits")
+    benefits: list[Benefit] = []
+    for index, offer in enumerate(restaurant_offers, start=1):
+        merchant = str((offer.get("comercio") or {}).get("nombre") or offer.get("titulo") or "Comercio")
+        progress_line(f"BCI: {merchant}", index, total)
+        benefits.append(parse_bci_offer(offer))
+    return benefits
 
 
 def main() -> None:

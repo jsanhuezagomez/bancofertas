@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -18,6 +19,14 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/120.0.0.0 Safari/537.36"
 )
+
+
+def progress_line(label: str, current: int | None = None, total: int | None = None) -> None:
+    if current is not None and total is not None:
+        message = f"[{label}] {current}/{total}"
+    else:
+        message = f"[{label}]"
+    print(message, file=sys.stderr, flush=True)
 
 
 def fetch_text(url: str, headers: dict[str, str] | None = None, timeout: int = 60) -> str:
